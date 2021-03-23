@@ -6,7 +6,6 @@ from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 import base64
-import re
 from io import StringIO
 from io import BytesIO
 import cv2
