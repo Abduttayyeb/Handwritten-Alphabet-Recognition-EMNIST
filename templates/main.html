@@ -1,0 +1,201 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Syne+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.6.0/dist/umd/popper.min.js" integrity="sha384-KsvD1yqQ1/1+IA7gi3P0tyJcT3vR+NdBTt13hSJ2lnve8agRGXTTyNaBYmCR/Nwi" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+
+    <title> 
+        EMNIST-Letter-Recognition 
+    </title> 
+      <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.png') }}">
+
+</head> 
+  
+<body style="background-color: #212529"> 
+    <nav class="navbar navbar-dark bg-dark mt-4">
+        <div class="mx-auto text-white"><h1 style="font-family: 'Syne Mono', monospace;">Alphabet Recognizer</h1></div>
+    </nav>
+
+    <div class="container mt-4">
+
+                <form action="/predict" method="POST" >
+                    <div class="row">
+                        <div class="col d-flex justify-content-center">
+                            <canvas id="canvas" width="280" height="280" style=" box-shadow:  -5px -5px 10px #181b1e,
+             5px 5px 10px #2a2f34;  border:8px solid;"></canvas>
+                            <input id="canvasimg" name="canvasimg" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col d-flex justify-content-end">
+                            <input style=" border-radius: 0px ;font-family: 'Poppins', sans-serif;" class="btn btn-dark pt-3" id="submit" type="submit" value="PREDICT">
+                        </div>
+                        <div class="col d-flex">
+                            <input style="border-radius: 0px; font-family: 'Poppins', sans-serif;" class="btn btn-dark pt-3" id="cb" type="button" value="CLEAR">
+                        </div>
+
+                    </div>
+                </form>
+        <div class="row">
+            <div class="col d-flex justify-content-center m-3">
+                <div class="d-flex justify-content-center align-items-center" style=" box-shadow: inset 5px 5px 3px #16191c,
+                            inset -5px -5px 3px #2c3136; width: 4em; height: 4em; padding-top: 6px;">
+                    <h2 style="color: white">{{ value }}</h2>
+                </div>
+            </div>
+        </div>
+        <footer class="mt-auto text-white-50 justify-content-center d-flex">
+                <p style="font-family: 'Rajdhani', sans-serif;">Developed by <a style="text-decoration: none;" href="https://abduttayyeb.github.io" class="text-white" target="__blank__">Abduttayyeb Mazhar &copy </a></p>
+        </footer>
+    </div>
+    <script type="text/javascript">
+            (function() {
+      
+      // Get a regular interval for drawing to the screen
+      window.requestAnimFrame = (function (callback) {
+        return window.requestAnimationFrame || 
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame ||
+              window.oRequestAnimationFrame ||
+              window.msRequestAnimaitonFrame ||
+              function (callback) {
+                window.setTimeout(callback, 1000/60);
+              };
+      })();
+
+      // Set up the canvas
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext("2d");
+      ctx.strokeStyle = "white";
+      ctx.lineWith = 24;
+      ctx.fillStyle = "black";
+      ctx.fillRect(0,0,280,280);
+        ctx.lineWidth = 24;
+        ctx.lineCap = 'round';
+
+
+
+      rawImage = document.getElementById('canvasimg');
+      var clear = document.getElementById("cb");
+
+      var submitBtn = document.getElementById("submit");
+      submitBtn.addEventListener("click", function (e) {
+        rawImage.value = canvas.toDataURL("image/png"); },false);
+
+     clear.addEventListener("click", function (e) {
+        clearCanvas();
+      }, false);
+
+      // Set up mouse events for drawing
+      var drawing = false;
+      var mousePos = { x:0, y:0 };
+      var lastPos = mousePos;
+      canvas.addEventListener("mousedown", function (e) {
+        drawing = true;
+        lastPos = getMousePos(canvas, e);
+      }, false);
+      canvas.addEventListener("mouseup", function (e) {
+        drawing = false;
+      }, false);
+      canvas.addEventListener("mousemove", function (e) {
+        mousePos = getMousePos(canvas, e);
+      }, false);
+
+      // Set up touch events for mobile, etc
+      canvas.addEventListener("touchstart", function (e) {
+        mousePos = getTouchPos(canvas, e);
+        var touch = e.touches[0];
+        var mouseEvent = new MouseEvent("mousedown", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+      }, false);
+      canvas.addEventListener("touchend", function (e) {
+        var mouseEvent = new MouseEvent("mouseup", {});
+        canvas.dispatchEvent(mouseEvent);
+      }, false);
+      canvas.addEventListener("touchmove", function (e) {
+        var touch = e.touches[0];
+        var mouseEvent = new MouseEvent("mousemove", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+      }, false);
+
+      // Prevent scrolling when touching the canvas
+      document.body.addEventListener("touchstart", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, false);
+      document.body.addEventListener("touchend", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, false);
+      document.body.addEventListener("touchmove", function (e) {
+        if (e.target == canvas) {
+          e.preventDefault();
+        }
+      }, false);
+
+      // Get the position of the mouse relative to the canvas
+      function getMousePos(canvasDom, mouseEvent) {
+        var rect = canvasDom.getBoundingClientRect();
+        return {
+          x: mouseEvent.clientX - rect.left,
+          y: mouseEvent.clientY - rect.top
+        };
+      }
+
+      // Get the position of a touch relative to the canvas
+      function getTouchPos(canvasDom, touchEvent) {
+        var rect = canvasDom.getBoundingClientRect();
+        return {
+          x: touchEvent.touches[0].clientX - rect.left,
+          y: touchEvent.touches[0].clientY - rect.top
+        };
+      }
+
+      // Draw to the canvas
+      function renderCanvas() {
+        if (drawing) {
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 24;
+            ctx.lineCap = 'round';
+          ctx.moveTo(lastPos.x, lastPos.y);
+          ctx.lineTo(mousePos.x, mousePos.y);
+          ctx.stroke();
+          lastPos = mousePos;
+        }
+      }
+
+      // Clear the canvas
+      function clearCanvas() {
+        canvas.width = canvas.width;
+        ctx.fillStyle = "black";
+        ctx.fillRect(0,0,280,280); }
+      
+
+      // Allow for animation
+      (function drawLoop () {
+        requestAnimFrame(drawLoop);
+        renderCanvas();
+      })();
+
+    })();
+
+    </script>
+</body> 
+  
+</html> 
