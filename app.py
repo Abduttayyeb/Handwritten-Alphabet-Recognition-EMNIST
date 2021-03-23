@@ -11,10 +11,6 @@ from io import BytesIO
 import cv2
 import pandas as pd
 
-# tf.config.experimental.set_visible_devices([], 'GPU')
-
-
-
 app = Flask(__name__)
 model = load_model('EMNIST-Balanced-Model.h5',compile=True)
 ascii_map = pd.read_csv("mapping.csv")
@@ -30,8 +26,6 @@ def get_image():
     canvasdata = request.form['canvasimg']
     # print(canvasdata)
     encoded_data = request.form['canvasimg'].split(',')[1]
-    # image_data = re.sub('^data:image/.+;base64,', '', image_b64)
-    # im_bytes = base64.b64decode(image_data)
     nparr = np.frombuffer(base64.b64decode(encoded_data), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     print(img.shape)
@@ -43,17 +37,10 @@ def get_image():
     gray_image = np.expand_dims(gray_image, axis=-1)
     img = np.expand_dims(gray_image, axis=0)
 
-    # im_file = BytesIO(im_bytes)
-    # img = Image.open(im_file)
-    # print(image_b64)
-    # image_PIL = Image.open(StringIO(im_bytes))
-    # image_np = np.array(img)
     print('Image received: {}'.format(img.shape))
     prediction = model.predict(img)
     cl = list(prediction[0])
     print("Prediction : ",ascii_map["Character"][cl.index(max(cl))])
-
-
 
     ## INITIAL TF VERSION -> 2.3.0
     # print(prediction)
