@@ -1,5 +1,4 @@
-### DEMO
-#### WebApp: https://alphanum-vision.herokuapp.com/
+### DEMO: https://alphanum-vision.herokuapp.com/
 <img src="Alphanum-Rec.gif">
 
 
